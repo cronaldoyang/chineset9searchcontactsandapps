@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/numpad_button_width"
+    android:layout_height="@dimen/numpad_button_height"
+    android:background="@drawable/clear_btn"
+    android:clickable="true" >
+
+    <TextView
+        android:id="@+id/lbl_clear_first_letter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="-5.0dip"
+        android:layout_marginLeft="8.0dip"
+        android:text="@string/btn_clear_first_letter"
+        android:textColor="@color/light_white"
+        android:textSize="55.0dip" />
+
+    <TextView
+        android:id="@+id/lbl_clear"
+        style="@style/CharsetLabel"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="5.0dip"
+        android:layout_toRightOf="@+id/lbl_clear_first_letter"
+        android:gravity="center_horizontal"
+        android:text="@string/btn_clear"
+        android:textSize="@dimen/chars_size"
+        android:textStyle="bold" />
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="@dimen/clear_line_height"
+        android:layout_alignParentBottom="true"
+        android:background="@color/holo_red_light" />
+
+</RelativeLayout>

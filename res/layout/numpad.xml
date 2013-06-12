@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/numpad_width"
+    android:layout_height="@dimen/numpad_height"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:layout_width="@dimen/numpad_width"
+        android:layout_height="@dimen/numpad_button_height" >
+
+        <include
+            android:id="@+id/btn_numpad_clear"
+            android:layout_width="@dimen/numpad_button_width"
+            android:layout_height="@dimen/numpad_button_height"
+            layout="@layout/button_clear" />
+
+        <include
+            android:id="@+id/btn_numpad_2"
+            android:layout_width="@dimen/numpad_button_width"
+            android:layout_height="@dimen/numpad_button_height"
+            android:layout_marginLeft="@dimen/numpad_space"
+            layout="@layout/button_with_line" />
+
+        <include
+            android:id="@+id/btn_numpad_3"
+            android:layout_width="@dimen/numpad_button_width"
+            android:layout_height="@dimen/numpad_button_height"
+            android:layout_marginLeft="@dimen/numpad_space"
+            layout="@layout/button_with_line" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="@dimen/numpad_width"
+        android:layout_height="@dimen/numpad_button_height" >
+
+        <include
+            android:id="@+id/btn_numpad_4"
+            android:layout_width="@dimen/numpad_button_width"
+            android:layout_height="@dimen/numpad_button_height"
+            layout="@layout/button_with_line" />
+
+        <include
+            android:id="@+id/btn_numpad_5"
+            android:layout_width="@dimen/numpad_button_width"
+            android:layout_height="@dimen/numpad_button_height"
+            android:layout_marginLeft="@dimen/numpad_space"
+            layout="@layout/button_with_line" />
+
+        <include
+            android:id="@+id/btn_numpad_6"
+            android:layout_width="@dimen/numpad_button_width"
+            android:layout_height="@dimen/numpad_button_height"
+            android:layout_marginLeft="@dimen/numpad_space"
+            layout="@layout/button_with_line" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="@dimen/numpad_width"
+        android:layout_height="@dimen/numpad_button_height" >
+
+        <include
+            android:id="@+id/btn_numpad_7"
+            android:layout_width="@dimen/numpad_button_width"
+            android:layout_height="@dimen/numpad_button_height"
+            layout="@layout/button" />
+
+        <include
+            android:id="@+id/btn_numpad_8"
+            android:layout_width="@dimen/numpad_button_width"
+            android:layout_height="@dimen/numpad_button_height"
+            android:layout_marginLeft="@dimen/numpad_space"
+            layout="@layout/button" />
+
+        <include
+            android:id="@+id/btn_numpad_9"
+            android:layout_width="@dimen/numpad_button_width"
+            android:layout_height="@dimen/numpad_button_height"
+            android:layout_marginLeft="@dimen/numpad_space"
+            layout="@layout/button" />
+    </LinearLayout>
+
+</LinearLayout>

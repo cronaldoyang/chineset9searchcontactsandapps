@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/numpad_button_width"
+    android:layout_height="@dimen/numpad_button_height"
+    android:background="@drawable/numpad_btn"
+    android:clickable="true" >
+
+    <include layout="@layout/button_labels" />
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="@dimen/brake_line_height"
+        android:layout_alignParentBottom="true"
+        android:background="@color/light_blue_transparent" />
+
+</RelativeLayout>

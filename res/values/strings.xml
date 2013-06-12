@@ -3,4 +3,6 @@
     <string name="app_name">QuickDialer</string>
     <string name="delete_button_descrition">点击清除输入</string>
     <string name="test_input">15210</string>
+    <string name="btn_clear">LEAR</string>
+    <string name="btn_clear_first_letter">C</string>
 </resources>

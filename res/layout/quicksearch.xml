@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
     android:layout_gravity="center"
-    android:layout_marginLeft="10dp"
-    android:layout_marginRight="10dp"
+    android:background="@drawable/diagonal_lines_dark"
+    android:clickable="true"
+    android:gravity="bottom|center"
     android:orientation="vertical" >
 
     <Gallery
@@ -14,6 +15,20 @@
         android:layout_marginTop="10dp"
         android:spacing="10dp" />
 
-    <include layout="@layout/keyboard" />
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="@dimen/brake_line_height"
+        android:background="@color/light_blue_transparent" />
+
+    <include
+        android:id="@+id/stub_numpad"
+        android:layout_width="@dimen/numpad_width"
+        android:layout_height="@dimen/numpad_height"
+        layout="@layout/numpad" />
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="@dimen/brake_line_height"
+        android:background="@color/light_blue_transparent" />
 
 </LinearLayout>

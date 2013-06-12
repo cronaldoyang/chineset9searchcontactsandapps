@@ -1,47 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <style name="keyboard">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:orientation">vertical</item>
+<resources>
+    <style name="Widget" />
+    <style name="Widget.IconPageIndicator" parent="@style/Widget">
+        <item name="android:layout_marginLeft">6.0dip</item>
+        <item name="android:layout_marginRight">6.0dip</item>
     </style>
-
-    <style name="input_bar">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:orientation">horizontal</item>
+    <style name="NumpadButton" parent="@android:style/Widget.Button">
+        <item name="android:textSize">15.0dip</item>
+        <item name="android:textColor">#ddffffff</item>
+        <item name="android:gravity">bottom|left|center</item>
+        <item name="android:background">@drawable/numpad_btn</item>
+        <item name="android:paddingLeft">40.0dip</item>
+        <item name="android:paddingBottom">7.0dip</item>
+        <item name="android:layout_width">@dimen/numpad_button_width</item>
+        <item name="android:layout_height">@dimen/numpad_button_height</item>
     </style>
-
-    <style name="keyboard_row">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:orientation">horizontal</item>
-        <item name="android:background">@drawable/dialpad_background</item>
+    <style name="CharsetLabel" parent="@android:style/Widget.TextView">
+        <item name="android:textColor">#ddffffff</item>
     </style>
-
-    <style name="button_del">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:src">@drawable/ic_dial_action_delete</item>
-        <item name="android:layout_alignParentRight">true</item>
-        <item name="android:onClick">onBtnClick</item>
+    <style name="AppTheme" parent="@android:style/Theme.Holo.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:colorBackgroundCacheHint">@null</item>
     </style>
-
-    <style name="keyboard_button">
-        <item name="android:layout_width">90dp</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:onClick">onBtnClick</item>
-    </style>
-
-    <style name="DigitsTextAppearance">
-        <item name="android:maxLines">1</item>
-        <item name="android:textSize">35sp</item>
-        <item name="android:textColor">?android:attr/textColorPrimary</item>
-        <item name="android:freezesText">true</item>
-        <item name="android:editable">false</item>
-        <item name="android:cursorVisible">false</item>
-    </style>
-
 </resources>

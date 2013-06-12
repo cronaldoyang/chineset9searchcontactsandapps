@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <TextView
+        android:id="@+id/lbl_number"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="-5.0dip"
+        android:layout_marginLeft="8.0dip"
+        android:text="2"
+        android:textColor="@color/light_white"
+        android:textSize="55.0dip" />
+
+    <TextView
+        android:id="@+id/lbl_en_chars"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="5.0dip"
+        android:layout_toRightOf="@+id/lbl_number"
+        android:gravity="center_horizontal"
+        android:text="ABC"
+        android:textColor="#ddffffff"
+        android:textSize="@dimen/chars_size"
+        android:textStyle="bold" />
+
+</merge>
