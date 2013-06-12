@@ -164,10 +164,6 @@ public class SearchService extends AbstractSearchService {
                     float boost = (starred ? 5.0f : 1.0f) + contacted
                             / (1.0f + (current - lastContacted) / (7.0f * ONE_DAY_IN_MILLISECONDS));
                     String pinyin = pinyinConverter.convert(name, true);
-                    // log(TAG, "index contact:" + id + "\t" + name
-                    // + "\t" + number + "\t" + pinyin + "\t" + boost
-                    // + "\t" + starred + "\t" + contacted + "\t"
-                    // + lastContacted);
                     idField.setStringValue(id);
                     numberField.setStringValue(number);
                     nameField.setStringValue(name);

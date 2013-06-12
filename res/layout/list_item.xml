@@ -1,16 +1,15 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="left|top"
+    android:layout_width="96dp"
+    android:layout_height="96dp"
     android:background="#333333"
-    android:orientation="vertical" >
+    android:gravity="center"
+    android:orientation="vertical"
+    android:paddingTop="8dp">
 
     <ImageView
         android:id="@+id/icon"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_marginLeft="6dp"
-        android:layout_marginTop="6dp"
         android:src="@drawable/ic_dialer" />
 
     <TextView
@@ -19,10 +18,12 @@
         android:layout_height="wrap_content"
         android:layout_gravity="left|center"
         android:layout_margin="6dp"
+        android:ellipsize="end"
+        android:gravity="center"
         android:singleLine="true"
-        android:text="sweetie"
         android:textColor="#ffffff"
-        android:textSize="18sp" />
+        android:textSize="18sp"
+        android:width="96dp" />
 
     <TextView
         android:id="@+id/number"
@@ -30,9 +31,11 @@
         android:layout_height="wrap_content"
         android:layout_gravity="left|center"
         android:layout_margin="6dp"
+        android:ellipsize="end"
+        android:gravity="center"
         android:singleLine="true"
-        android:text="15210165256"
         android:textColor="#ffffff"
-        android:textSize="14sp" />
+        android:textSize="14sp"
+        android:width="96dp" />
 
 </LinearLayout>

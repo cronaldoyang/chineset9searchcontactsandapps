@@ -17,6 +17,7 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:orientation">horizontal</item>
+        <item name="android:background">@drawable/dialpad_background</item>
     </style>
 
     <style name="button_del">
@@ -29,9 +30,8 @@
     </style>
 
     <style name="keyboard_button">
-        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_width">90dp</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_weight">1</item>
         <item name="android:onClick">onBtnClick</item>
     </style>
 
