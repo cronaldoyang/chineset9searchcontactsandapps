@@ -1,6 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="96dp"
-    android:layout_height="96dp"
+    android:layout_width="108dp"
+    android:layout_height="108dp"
     android:background="#333333"
     android:gravity="center"
     android:orientation="vertical"
@@ -23,7 +23,7 @@
         android:singleLine="true"
         android:textColor="#ffffff"
         android:textSize="18sp"
-        android:width="96dp" />
+        android:width="108dp" />
 
     <TextView
         android:id="@+id/number"
@@ -36,6 +36,6 @@
         android:singleLine="true"
         android:textColor="#ffffff"
         android:textSize="14sp"
-        android:width="96dp" />
+        android:width="108dp" />
 
 </LinearLayout>

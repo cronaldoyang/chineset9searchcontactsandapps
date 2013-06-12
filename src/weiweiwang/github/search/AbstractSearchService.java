@@ -37,8 +37,6 @@ import org.apache.lucene.store.MMapDirectory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 
-import android.R.color;
-
 import weiweiwang.github.search.analysis.NGramAnalyzer;
 import weiweiwang.github.search.analysis.PinyinAnalyzer;
 import weiweiwang.github.search.analysis.T9Analyzer;
@@ -322,30 +320,21 @@ public abstract class AbstractSearchService {
                 }
 
                 long begin = System.currentTimeMillis();
-                if (mHighlight && number != null) {
-                    String highlightedNumber = highlightNumber(number, mQuery);
-                    String highlightedPinyin = null;
-                    if (null != highlightedNumber) {
+                if (mHighlight) {
+                   /* String highlightedNumber = (number != null) ? highlightNumber(number, mQuery)
+                            : null;*/
+                    String highlightedPinyin = (null != pinyin) ? highlightPinyin(pinyin, mQuery)
+                            : null;
+
+                    /*if (null != highlightedNumber) {
                         doc.put(FIELD_HIGHLIGHTED_NUMBER, highlightedNumber);
-                    }
-                    if (null != pinyin) {// highlight pinyin
-                        highlightedPinyin = highlightPinyin(pinyin, mQuery);
-                        if (null != highlightedPinyin) {
-                            if (pinyin.equals(name)) { // 绾嫳鏂�
-                                                       // doc.put(FIELD_NAME,
-                                                       // highlightedPinyin);
-                            } else {
-                                doc.put(FIELD_PINYIN, highlightedPinyin);
-                            }
+                    } else*/ if (null != highlightedPinyin) {
+                        if (pinyin.equals(name)) {
+                            doc.put(FIELD_NAME, highlightedPinyin);
                         } else {
-                            if (!pinyin.equals(name)) {
-                                int index = pinyin.lastIndexOf('|');
-                                doc.put(FIELD_PINYIN,
-                                        index == -1 ? pinyin : pinyin.substring(0, index));
-                            }
+                            doc.put(FIELD_PINYIN, highlightedPinyin);
                         }
-                    }
-                    if (null == highlightedNumber && null == highlightedPinyin) {
+                    } else {
                         continue;
                     }
                 }

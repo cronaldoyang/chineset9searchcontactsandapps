@@ -1,3 +1,4 @@
+
 package weiweiwang.github.search.analysis;
 
 /*
@@ -19,32 +20,30 @@ package weiweiwang.github.search.analysis;
 
 import java.io.IOException;
 
-
 import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.util.Version;
 
-
 /**
- * Normalizes token text to lower case.
- * <a name="version"/>
- * <p>You must specify the required {@link org.apache.lucene.util.Version}
+ * Normalizes token text to lower case. <a name="version"/>
+ * <p>
+ * You must specify the required {@link org.apache.lucene.util.Version}
  * compatibility when creating LowerCaseFilter:
  * <ul>
- * <li> As of 3.1, supplementary characters are properly lowercased.
+ * <li>As of 3.1, supplementary characters are properly lowercased.
  * </ul>
  */
 public final class T9Filter extends TokenFilter {
     private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
-    private static final String T9 = "22233344455566677778889999";
 
+    private static final String T9 = "22233344455566677778889999";
 
     /**
      * Create a new LowerCaseFilter, that normalizes token text to lower case.
-     *
+     * 
      * @param matchVersion See <a href="#version">above</a>
-     * @param in           TokenStream to filter
+     * @param in TokenStream to filter
      */
     public T9Filter(Version matchVersion, TokenStream in) {
         super(in);
@@ -55,8 +54,8 @@ public final class T9Filter extends TokenFilter {
         if (input.incrementToken()) {
             final char[] buffer = termAtt.buffer();
             final int length = termAtt.length();
-            for (int i = 0; i < length; ) {
-                buffer[i]=convert(buffer[i++]);
+            for (int i = 0; i < length;) {
+                buffer[i] = convert(buffer[i++]);
             }
             return true;
         } else

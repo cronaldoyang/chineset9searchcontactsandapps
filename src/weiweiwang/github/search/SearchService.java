@@ -21,7 +21,7 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.util.Log;
 
 public class SearchService extends AbstractSearchService {
-    public static final String TAG = SearchService.class.getName();
+    public static final String TAG = "SearchService";
 
     private static final String INDEX_DIR = "idx";
 
