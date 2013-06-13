@@ -8,12 +8,27 @@
     android:gravity="bottom|center"
     android:orientation="vertical" >
 
-    <Gallery
-        android:id="@+id/list"
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:layout_marginTop="10dp"
-        android:spacing="10dp" />
+    <FrameLayout
+        android:layout_width="@dimen/numpad_width"
+        android:layout_height="@dimen/pager_height" >
+
+        <TextView
+            android:id="@+id/no_searchresultpage"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:background="@drawable/numpad_btn"
+            android:gravity="center"
+            android:text="@string/no_searchresultpagehit"
+            android:textSize="20sp"
+            android:visibility="gone" />
+
+        <Gallery
+            android:id="@+id/list"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_marginTop="10dp"
+            android:spacing="10dp" />
+    </FrameLayout>
 
     <View
         android:layout_width="fill_parent"

@@ -29,6 +29,7 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
     private AbstractSearchService mSearchService;
 
     private Gallery mList;
+    private TextView mNoSearchResultPage;
 
     private T9SearchResultAdapter mResultAdapter = null;
 
@@ -52,6 +53,8 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
 
     private void initView() {
         initSoftKeyboard();
+        mNoSearchResultPage = (TextView) findViewById(R.id.no_searchresultpage);
+        mNoSearchResultPage.setOnClickListener(mBtnClickListener);
         mList = ((Gallery) findViewById(R.id.list));
         mList.setAdapter(mResultAdapter);
         mList.setOnItemClickListener(this);
@@ -134,6 +137,9 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
                 case R.id.btn_numpad_clear:
                     resetIputStr();
                     break;
+                case R.id.no_searchresultpage:
+                    resetIputStr();
+                    break;
                 default:
                     buildSearchStr(getNumberByView(view));
                     break;
@@ -151,6 +157,7 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
     }
 
     private void resetIputStr() {
+        setTheVisibilityOfNoSearchResultPage(false);
         mInputStrBuilder.delete(0, mInputStrBuilder.length());
         if (BuildConfig.DEBUG) {
             Log.e(TAG, "resetIputStr: length:" + mInputStrBuilder.length());
@@ -173,16 +180,32 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        mResultAdapter.updateData(result);
-                        mResultAdapter.notifyDataSetChanged();
-                        mList.setSelection(0);
+                        boolean showNoSearchResultPage = result.size() > 0 ? false : true;
+                        if(!showNoSearchResultPage){
+                            mResultAdapter.updateData(result);
+                            mResultAdapter.notifyDataSetChanged();
+                            mList.setSelection(result.size()>=2 ? 1 : 0);
+                        }
+                        setTheVisibilityOfNoSearchResultPage(showNoSearchResultPage);
                     }
                 });
-                Log.v(SearchService.TAG, "query:" + query + ",result: " + result.size()
-                        + ",time used:" + (System.currentTimeMillis() - start));
+                if (BuildConfig.DEBUG) {
+                    Log.v(SearchService.TAG, "query:" + query + ",result: " + result.size() + ",time used:"
+                            + (System.currentTimeMillis() - start));
+                }
             }
         };
         mSearchService.query(query, MAX_HITS, true, searchCallback);
+    }
+
+    private void setTheVisibilityOfNoSearchResultPage(boolean visibility) {
+        if (visibility) {
+            mNoSearchResultPage.setVisibility(View.VISIBLE);
+            mList.setVisibility(View.GONE);
+        } else {
+            mNoSearchResultPage.setVisibility(View.GONE);
+            mList.setVisibility(View.VISIBLE);
+        }
     }
 
 }
