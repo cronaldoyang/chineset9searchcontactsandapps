@@ -295,11 +295,14 @@ public abstract class AbstractSearchService {
             TopDocs td = indexSearcher.search(q, mMaxHits);
             long hits = td.totalHits;
             ScoreDoc[] scoreDocs = td.scoreDocs;
-            HashMap<String, Map<String, String>> resultList = new HashMap<String, Map<String, String>>(
+            HashMap<String, Map<String, String>> searchAppsResultList = new HashMap<String, Map<String, String>>(
+                    mMaxHits);
+            HashMap<String, Map<String, String>> searchContactsResultList = new HashMap<String, Map<String, String>>(
                     mMaxHits);
             for (ScoreDoc scoreDoc : scoreDocs) {
                 Map<String, String> resultItem = new HashMap<String, String>();
                 Document document = indexReader.document(scoreDoc.doc);
+                boolean isContacts = false;
                 String name = document.get(FIELD_NAME);
                 String number = document.get(FIELD_NUMBER);
                 String pinyin = document.get(FIELD_PINYIN);
@@ -312,6 +315,7 @@ public abstract class AbstractSearchService {
                 }
                 if (null != number) {
                     resultItem.put(FIELD_NUMBER, number);
+                    isContacts = true;
                 }
                 if (null != pkg && null != activity) {
                     resultItem.put(FIELD_PKG, pkg);
@@ -340,14 +344,20 @@ public abstract class AbstractSearchService {
                 long end = System.currentTimeMillis();
                 highlightedTimeUsed += (end - begin);
                 resultItem.put(FIELD_TYPE, document.get(FIELD_TYPE));
-                resultList.put(pkg, resultItem);
+                if (isContacts) {
+                    searchContactsResultList.put(pkg, resultItem);
+                } else {
+                    searchAppsResultList.put(pkg, resultItem);
+                }
             }
             indexReader.close();
             long end = System.currentTimeMillis();
             log(TAG, q.toString() + "\t" + hits + "\t" + (end - start) + "\t" + highlightedTimeUsed);
 
-            mSearchCallback.onSearchResult(mQuery, hits,
-                    new ArrayList<Map<String, String>>(resultList.values()));
+            ArrayList<Map<String, String>> finalSearchResultList = new ArrayList<Map<String, String>>();
+            finalSearchResultList.addAll(searchAppsResultList.values());
+            finalSearchResultList.addAll(searchContactsResultList.values());
+            mSearchCallback.onSearchResult(mQuery, hits, finalSearchResultList);
         } catch (Exception e) {
             e.printStackTrace();
             log(TAG, e.toString());
