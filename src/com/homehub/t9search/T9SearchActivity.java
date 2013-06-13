@@ -1,20 +1,34 @@
+
 package com.homehub.t9search;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.Html;
+import android.text.Spanned;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Gallery;
+import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.homehub.t9search.adapter.T9SearchResultAdapter;
+import com.homehub.t9search.dao.DBManager;
 import com.homehub.t9search.service.AbstractSearchService;
 import com.homehub.t9search.service.SearchCallback;
 import com.homehub.t9search.service.SearchService;
@@ -28,8 +42,13 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
 
     private AbstractSearchService mSearchService;
 
-    private Gallery mList;
+    private HorizontalScrollView mList;
+
     private TextView mNoSearchResultPage;
+
+    private LinearLayout mSearchResultContainer;
+
+    private List<Map<String, String>> mResults = new ArrayList<Map<String, String>>();
 
     private T9SearchResultAdapter mResultAdapter = null;
 
@@ -55,9 +74,8 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
         initSoftKeyboard();
         mNoSearchResultPage = (TextView) findViewById(R.id.no_searchresultpage);
         mNoSearchResultPage.setOnClickListener(mBtnClickListener);
-        mList = ((Gallery) findViewById(R.id.list));
-        mList.setAdapter(mResultAdapter);
-        mList.setOnItemClickListener(this);
+        mList = ((HorizontalScrollView) findViewById(R.id.list));
+        mSearchResultContainer = (LinearLayout) findViewById(R.id.search_result_container);
     }
 
     private void initSoftKeyboard() {
@@ -162,7 +180,7 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
         if (BuildConfig.DEBUG) {
             Log.e(TAG, "resetIputStr: length:" + mInputStrBuilder.length());
         }
-        mResultAdapter.resetData();
+        mSearchResultContainer.removeAllViews();
     }
 
     @Override
@@ -181,17 +199,15 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
                     @Override
                     public void run() {
                         boolean showNoSearchResultPage = result.size() > 0 ? false : true;
-                        if(!showNoSearchResultPage){
-                            mResultAdapter.updateData(result);
-                            mResultAdapter.notifyDataSetChanged();
-                            mList.setSelection(result.size()>=2 ? 1 : 0);
+                        if (!showNoSearchResultPage) {
+                            bindSearachResultData(result);
                         }
                         setTheVisibilityOfNoSearchResultPage(showNoSearchResultPage);
                     }
                 });
                 if (BuildConfig.DEBUG) {
-                    Log.v(SearchService.TAG, "query:" + query + ",result: " + result.size() + ",time used:"
-                            + (System.currentTimeMillis() - start));
+                    Log.v(SearchService.TAG, "query:" + query + ",result: " + result.size()
+                            + ",time used:" + (System.currentTimeMillis() - start));
                 }
             }
         };
@@ -205,6 +221,133 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
         } else {
             mNoSearchResultPage.setVisibility(View.GONE);
             mList.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void bindSearachResultData(List<Map<String, String>> result) {
+        mResults.clear();
+        mResults.addAll(result);
+        mSearchResultContainer.removeAllViews();
+
+        for (int i = 0; i < result.size(); i++) {
+            View v = getSearchResulItemView(i);
+            final int position = i;
+            v.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View arg0) {
+                    handleClick(position);
+                }
+            });
+            mSearchResultContainer.addView(v);
+        }
+    }
+
+    private View getSearchResulItemView(int position) {
+        View rowView = LayoutInflater.from(this).inflate(R.layout.list_item, null, false);
+        ((TextView) rowView.findViewById(R.id.name)).setText(getNameStr(position));
+        Drawable icon = null;
+        if (checkIsApp(position)) {
+            icon = getAppIcon(position);
+        } else {
+            icon = DBManager.getPeoplePhotoByPhoneNumber(this, getPhoneNumberStr(position));
+        }
+        ((ImageView) rowView.findViewById(R.id.icon)).setImageDrawable(icon);
+        return rowView;
+    }
+
+    protected Spanned getNameStr(int position) {
+        Map<String, String> searchRes = mResults.get(position);
+        StringBuilder nameBuilder = new StringBuilder();
+        if (searchRes.containsKey(SearchService.FIELD_NAME)) {
+            nameBuilder.append(searchRes.get(SearchService.FIELD_NAME).toString());
+        } else {
+            nameBuilder.append("Not contains*****");
+        }
+        nameBuilder.append(' ');
+        if (searchRes.containsKey(SearchService.FIELD_PINYIN)) {
+            nameBuilder.append(searchRes.get(SearchService.FIELD_PINYIN).toString());
+        }
+        return Html.fromHtml(nameBuilder.toString());
+    }
+
+    protected Spanned getHighlightPhoneNumberStr(int position) {
+        Map<String, String> searchRes = mResults.get(position);
+        StringBuilder numberBuilder = new StringBuilder();
+        if (searchRes.containsKey(SearchService.FIELD_HIGHLIGHTED_NUMBER)) {
+            numberBuilder.append(searchRes.get(SearchService.FIELD_HIGHLIGHTED_NUMBER).toString());
+        } else if (searchRes.containsKey(SearchService.FIELD_NUMBER)) {
+            numberBuilder.append(searchRes.get(SearchService.FIELD_NUMBER));
+        }
+        return Html.fromHtml(numberBuilder.toString());
+    }
+
+    protected String getPhoneNumberStr(int position) {
+        Map<String, String> searchRes = mResults.get(position);
+        if (searchRes.containsKey(SearchService.FIELD_NUMBER)) {
+            return (String) searchRes.get(SearchService.FIELD_NUMBER);
+        } else {
+            return "";
+        }
+    }
+
+    protected boolean checkIsApp(int position) {
+        Map<String, String> searchRes = mResults.get(position);
+        boolean ret = false;
+        if (searchRes.containsKey(SearchService.FIELD_PKG)
+                && searchRes.containsKey(SearchService.FIELD_ACTIVITY)) {
+            ret = true;
+        }
+        if (BuildConfig.DEBUG) {
+            Log.e(TAG, "checkIsApp:" + ret);
+        }
+        return ret;
+    }
+
+    protected Drawable getAppIcon(int position) {
+        Map<String, String> searchRes = mResults.get(position);
+        Drawable icon = null;
+        try {
+            PackageManager pm = this.getPackageManager();
+            String pkg = searchRes.get(SearchService.FIELD_PKG).toString();
+            if (BuildConfig.DEBUG) {
+                Log.e(TAG, "getAppIcon: pkg:" + pkg);
+            }
+            icon = pm.getApplicationIcon(pkg);
+        } catch (NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return icon;
+    }
+
+    protected void naviToApp(int position) {
+        Map<String, String> searchRes = mResults.get(position);
+        String pkg = searchRes.get(SearchService.FIELD_PKG).toString();
+        String activity = searchRes.get(SearchService.FIELD_ACTIVITY).toString();
+        if (BuildConfig.DEBUG) {
+            Log.e(TAG, "naviToApp: pkg:" + pkg + "; activity:" + activity);
+        }
+        ComponentName name = new ComponentName(pkg, activity);
+        Intent i = new Intent(Intent.ACTION_MAIN);
+        i.addCategory(Intent.CATEGORY_LAUNCHER);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+        i.setComponent(name);
+        this.startActivity(i);
+    }
+
+    protected void naviTocall(int position) {
+        Map<String, String> searchRes = mResults.get(position);
+        String number = searchRes.get(SearchService.FIELD_NUMBER).toString();
+        Intent intent = new Intent(Intent.ACTION_CALL);
+        intent.setData(Uri.fromParts("tel", number, null));
+        this.startActivity(intent);
+    }
+
+    public void handleClick(int position) {
+        if (checkIsApp(position)) {
+            naviToApp(position);
+        } else {
+            naviTocall(position);
         }
     }
 

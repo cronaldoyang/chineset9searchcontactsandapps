@@ -23,7 +23,7 @@
     <dimen name="numpad_height">210.0dip</dimen>
     <dimen name="numpad_button_height">70.0dip</dimen>
     <dimen name="numpad_button_width">100.0dip</dimen>
-    <dimen name="pager_height">100.0dip</dimen>
+    <dimen name="pager_height">108.0dip</dimen>
     <dimen name="total_height">314.0dip</dimen>
     <dimen name="brake_line_height">2.0dip</dimen>
     <dimen name="clear_line_height">3.0dip</dimen>
