@@ -169,7 +169,7 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
 
             @Override
             public void onSearchResult(String query, long hits,
-                    final List<Map<String, Object>> result) {
+                    final List<Map<String, String>> result) {
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {

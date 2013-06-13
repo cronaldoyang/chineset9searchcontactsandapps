@@ -1,11 +1,9 @@
-
 package com.homehub.t9search.service;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -42,7 +40,6 @@ import com.homehub.t9search.service.analysis.PinyinAnalyzer;
 import com.homehub.t9search.service.analysis.T9Analyzer;
 import com.homehub.t9search.service.utils.StringUtils;
 import com.homehub.t9search.service.utils.T9Converter;
-
 
 public abstract class AbstractSearchService {
     protected static final String TAG = AbstractSearchService.class.getSimpleName();
@@ -298,9 +295,10 @@ public abstract class AbstractSearchService {
             TopDocs td = indexSearcher.search(q, mMaxHits);
             long hits = td.totalHits;
             ScoreDoc[] scoreDocs = td.scoreDocs;
-            List<Map<String, Object>> docs = new ArrayList<Map<String, Object>>(mMaxHits);
+            HashMap<String, Map<String, String>> resultList = new HashMap<String, Map<String, String>>(
+                    mMaxHits);
             for (ScoreDoc scoreDoc : scoreDocs) {
-                Map<String, Object> doc = new HashMap<String, Object>();
+                Map<String, String> resultItem = new HashMap<String, String>();
                 Document document = indexReader.document(scoreDoc.doc);
                 String name = document.get(FIELD_NAME);
                 String number = document.get(FIELD_NUMBER);
@@ -310,30 +308,30 @@ public abstract class AbstractSearchService {
                 log(TAG, "name:" + name + "; pkg:" + pkg + ";activity:" + activity);
 
                 if (null != name) {
-                    doc.put(FIELD_NAME, document.get(FIELD_NAME));
+                    resultItem.put(FIELD_NAME, document.get(FIELD_NAME));
                 }
                 if (null != number) {
-                    doc.put(FIELD_NUMBER, number);
+                    resultItem.put(FIELD_NUMBER, number);
                 }
                 if (null != pkg && null != activity) {
-                    doc.put(FIELD_PKG, pkg);
-                    doc.put(FIELD_ACTIVITY, activity);
+                    resultItem.put(FIELD_PKG, pkg);
+                    resultItem.put(FIELD_ACTIVITY, activity);
                 }
 
                 long begin = System.currentTimeMillis();
                 if (mHighlight) {
-                   /* String highlightedNumber = (number != null) ? highlightNumber(number, mQuery)
-                            : null;*/
+                    /* String highlightedNumber = (number != null) ? highlightNumber(number, mQuery)
+                             : null;*/
                     String highlightedPinyin = (null != pinyin) ? highlightPinyin(pinyin, mQuery)
                             : null;
 
                     /*if (null != highlightedNumber) {
                         doc.put(FIELD_HIGHLIGHTED_NUMBER, highlightedNumber);
-                    } else*/ if (null != highlightedPinyin) {
+                    } else*/if (null != highlightedPinyin) {
                         if (pinyin.equals(name)) {
-                            doc.put(FIELD_NAME, highlightedPinyin);
+                            resultItem.put(FIELD_NAME, highlightedPinyin);
                         } else {
-                            doc.put(FIELD_PINYIN, highlightedPinyin);
+                            resultItem.put(FIELD_PINYIN, highlightedPinyin);
                         }
                     } else {
                         continue;
@@ -341,13 +339,15 @@ public abstract class AbstractSearchService {
                 }
                 long end = System.currentTimeMillis();
                 highlightedTimeUsed += (end - begin);
-                doc.put(FIELD_TYPE, document.get(FIELD_TYPE));
-                docs.add(doc);
+                resultItem.put(FIELD_TYPE, document.get(FIELD_TYPE));
+                resultList.put(pkg, resultItem);
             }
             indexReader.close();
             long end = System.currentTimeMillis();
             log(TAG, q.toString() + "\t" + hits + "\t" + (end - start) + "\t" + highlightedTimeUsed);
-            mSearchCallback.onSearchResult(mQuery, hits, docs);
+
+            mSearchCallback.onSearchResult(mQuery, hits,
+                    new ArrayList<Map<String, String>>(resultList.values()));
         } catch (Exception e) {
             e.printStackTrace();
             log(TAG, e.toString());

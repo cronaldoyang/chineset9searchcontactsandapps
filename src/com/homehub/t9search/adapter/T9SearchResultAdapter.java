@@ -29,7 +29,7 @@ import com.homehub.t9search.service.SearchService;
 public class T9SearchResultAdapter extends BaseAdapter {
     private static final String TAG = "T9SearchResultAdapter";
     private static final boolean DEBUG = BuildConfig.DEBUG;
-    private List<Map<String, Object>> mResults = new ArrayList<Map<String, Object>>();
+    private List<Map<String, String>> mResults = new ArrayList<Map<String, String>>();
     private Context mContext;
 
     public T9SearchResultAdapter(Context context) {
@@ -41,7 +41,7 @@ public class T9SearchResultAdapter extends BaseAdapter {
         return mResults.size();
     }
 
-    public synchronized void updateData(List<Map<String, Object>> results) {
+    public synchronized void updateData(List<Map<String, String>> results) {
         this.mResults = results;
     }
 
@@ -80,7 +80,7 @@ public class T9SearchResultAdapter extends BaseAdapter {
     }
 
     protected Spanned getNameStr(int position) {
-        Map<String, Object> searchRes = mResults.get(position);
+        Map<String, String> searchRes = mResults.get(position);
         StringBuilder nameBuilder = new StringBuilder();
         if (searchRes.containsKey(SearchService.FIELD_NAME)) {
             nameBuilder.append(searchRes.get(SearchService.FIELD_NAME).toString());
@@ -95,7 +95,7 @@ public class T9SearchResultAdapter extends BaseAdapter {
     }
 
     protected Spanned getHighlightPhoneNumberStr(int position) {
-        Map<String, Object> searchRes = mResults.get(position);
+        Map<String, String> searchRes = mResults.get(position);
         StringBuilder numberBuilder = new StringBuilder();
         if (searchRes.containsKey(SearchService.FIELD_HIGHLIGHTED_NUMBER)) {
             numberBuilder.append(searchRes.get(SearchService.FIELD_HIGHLIGHTED_NUMBER)
@@ -107,7 +107,7 @@ public class T9SearchResultAdapter extends BaseAdapter {
     }
 
     protected String getPhoneNumberStr(int position) {
-        Map<String, Object> searchRes = mResults.get(position);
+        Map<String, String> searchRes = mResults.get(position);
         if (searchRes.containsKey(SearchService.FIELD_NUMBER)) {
             return (String) searchRes.get(SearchService.FIELD_NUMBER);
         } else {
@@ -116,7 +116,7 @@ public class T9SearchResultAdapter extends BaseAdapter {
     }
 
     protected boolean checkIsApp(int position) {
-        Map<String, Object> searchRes = mResults.get(position);
+        Map<String, String> searchRes = mResults.get(position);
         boolean ret = false;
         if (searchRes.containsKey(SearchService.FIELD_PKG)
                 && searchRes.containsKey(SearchService.FIELD_ACTIVITY)) {
@@ -129,7 +129,7 @@ public class T9SearchResultAdapter extends BaseAdapter {
     }
 
     protected Drawable getAppIcon(int position) {
-        Map<String, Object> searchRes = mResults.get(position);
+        Map<String, String> searchRes = mResults.get(position);
         Drawable icon = null;
         try {
             PackageManager pm = mContext.getPackageManager();
@@ -145,7 +145,7 @@ public class T9SearchResultAdapter extends BaseAdapter {
     }
 
     protected void naviToApp(int position) {
-        Map<String, Object> searchRes = mResults.get(position);
+        Map<String, String> searchRes = mResults.get(position);
         String pkg = searchRes.get(SearchService.FIELD_PKG).toString();
         String activity = searchRes.get(SearchService.FIELD_ACTIVITY).toString();
         if (DEBUG) {
@@ -160,7 +160,7 @@ public class T9SearchResultAdapter extends BaseAdapter {
     }
 
     protected void naviTocall(int position) {
-        Map<String, Object> searchRes = mResults.get(position);
+        Map<String, String> searchRes = mResults.get(position);
         String number = searchRes.get(SearchService.FIELD_NUMBER).toString();
         Intent intent = new Intent(Intent.ACTION_CALL);
         intent.setData(Uri.fromParts("tel", number, null));
