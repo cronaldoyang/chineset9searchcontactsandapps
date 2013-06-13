@@ -1,5 +1,5 @@
 
-package weiweiwang.github.search;
+package com.homehub.t9search.service;
 
 import java.util.List;
 import java.util.Map;

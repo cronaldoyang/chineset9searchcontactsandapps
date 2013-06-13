@@ -1,5 +1,5 @@
 
-package weiweiwang.github.search;
+package com.homehub.t9search.service;
 
 import java.util.HashMap;
 import java.util.List;
@@ -9,7 +9,8 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.Term;
 
-import weiweiwang.github.search.utils.PinyinConverter;
+import com.homehub.t9search.service.utils.PinyinConverter;
+
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;

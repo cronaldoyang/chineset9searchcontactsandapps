@@ -1,11 +1,12 @@
 
-package weiweiwang.github.search.utils;
-
-import android.content.Context;
-import weiweiwang.github.quickdialer.R;
+package com.homehub.t9search.service.utils;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+
+import android.content.Context;
+
+import com.homehub.t9search.R;
 
 public class PinyinConverter {
 

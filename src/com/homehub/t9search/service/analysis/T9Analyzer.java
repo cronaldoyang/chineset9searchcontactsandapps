@@ -1,5 +1,5 @@
 
-package weiweiwang.github.search.analysis;
+package com.homehub.t9search.service.analysis;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package weiweiwang.github.search.utils;
+package com.homehub.t9search.service.utils;
 
 /**
  * <p>
@@ -4223,7 +4223,7 @@ public class StringUtils {
      * StringUtils.defaultIfEmpty("bat", "NULL") = "bat"
      * </pre>
      * 
-     * @see weiweiwang.github.search.utils.StringUtils#defaultString(String,
+     * @see com.homehub.t9search.service.utils.StringUtils#defaultString(String,
      *      String)
      * @param str the String to check, may be null
      * @param defaultStr the default String to return if the input is empty ("")

@@ -1,5 +1,5 @@
 
-package weiweiwang.github.search;
+package com.homehub.t9search.service;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,11 +37,12 @@ import org.apache.lucene.store.MMapDirectory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 
-import weiweiwang.github.search.analysis.NGramAnalyzer;
-import weiweiwang.github.search.analysis.PinyinAnalyzer;
-import weiweiwang.github.search.analysis.T9Analyzer;
-import weiweiwang.github.search.utils.StringUtils;
-import weiweiwang.github.search.utils.T9Converter;
+import com.homehub.t9search.service.analysis.NGramAnalyzer;
+import com.homehub.t9search.service.analysis.PinyinAnalyzer;
+import com.homehub.t9search.service.analysis.T9Analyzer;
+import com.homehub.t9search.service.utils.StringUtils;
+import com.homehub.t9search.service.utils.T9Converter;
+
 
 public abstract class AbstractSearchService {
     protected static final String TAG = AbstractSearchService.class.getSimpleName();

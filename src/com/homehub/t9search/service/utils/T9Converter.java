@@ -1,5 +1,5 @@
 
-package weiweiwang.github.search.utils;
+package com.homehub.t9search.service.utils;
 
 /**
  * Created with IntelliJ IDEA. User: wangweiwei Date: 13-1-8 Time: 下午7:17 To

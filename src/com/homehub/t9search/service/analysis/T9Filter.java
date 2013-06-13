@@ -1,5 +1,5 @@
 
-package weiweiwang.github.search.analysis;
+package com.homehub.t9search.service.analysis;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
