@@ -11,6 +11,7 @@
         android:id="@+id/icon"
         android:layout_width="48dp"
         android:layout_height="48dp"
+        android:paddingTop="10dp"
         android:src="@drawable/ic_dialer" />
 
     <TextView
@@ -37,6 +38,7 @@
         android:singleLine="true"
         android:textColor="#ffffff"
         android:textSize="14sp"
-        android:width="108dp" />
+        android:width="108dp"
+        android:visibility="gone" />
 
 </LinearLayout>

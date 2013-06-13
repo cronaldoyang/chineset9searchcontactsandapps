@@ -23,6 +23,7 @@ import android.widget.TextView;
 
 import com.homehub.t9search.BuildConfig;
 import com.homehub.t9search.R;
+import com.homehub.t9search.dao.DBManager;
 import com.homehub.t9search.service.SearchService;
 
 public class T9SearchResultAdapter extends BaseAdapter {
@@ -62,15 +63,19 @@ public class T9SearchResultAdapter extends BaseAdapter {
                     false);
             ViewHolder viewHolder = new ViewHolder();
             viewHolder.name = (TextView) rowView.findViewById(R.id.name);
-            viewHolder.number = (TextView) rowView.findViewById(R.id.number);
+// viewHolder.number = (TextView) rowView.findViewById(R.id.number);
             viewHolder.icon = (ImageView) rowView.findViewById(R.id.icon);
             rowView.setTag(viewHolder);
         }
         ViewHolder holder = (ViewHolder) rowView.getTag();
         holder.name.setText(getNameStr(position));
-        holder.icon.setVisibility(View.VISIBLE);
-        holder.icon.setImageDrawable(getAppIcon(position));
-        holder.number.setVisibility(View.GONE);
+        Drawable icon = null;
+        if (checkIsApp(position)) {
+            icon = getAppIcon(position);
+        } else {
+            icon = DBManager.getPeoplePhotoByPhoneNumber(mContext, getPhoneNumberStr(position));
+        }
+        holder.icon.setImageDrawable(icon);
         return rowView;
     }
 
@@ -89,7 +94,7 @@ public class T9SearchResultAdapter extends BaseAdapter {
         return Html.fromHtml(nameBuilder.toString());
     }
 
-    protected Spanned getNumberStr(int position) {
+    protected Spanned getHighlightPhoneNumberStr(int position) {
         Map<String, Object> searchRes = mResults.get(position);
         StringBuilder numberBuilder = new StringBuilder();
         if (searchRes.containsKey(SearchService.FIELD_HIGHLIGHTED_NUMBER)) {
@@ -99,6 +104,15 @@ public class T9SearchResultAdapter extends BaseAdapter {
             numberBuilder.append(searchRes.get(SearchService.FIELD_NUMBER));
         }
         return Html.fromHtml(numberBuilder.toString());
+    }
+
+    protected String getPhoneNumberStr(int position) {
+        Map<String, Object> searchRes = mResults.get(position);
+        if (searchRes.containsKey(SearchService.FIELD_NUMBER)) {
+            return (String) searchRes.get(SearchService.FIELD_NUMBER);
+        } else {
+            return "";
+        }
     }
 
     protected boolean checkIsApp(int position) {
@@ -169,6 +183,6 @@ public class T9SearchResultAdapter extends BaseAdapter {
     private static class ViewHolder {
         public ImageView icon;
         public TextView name;
-        public TextView number;
+// public TextView number;
     }
 }
