@@ -246,6 +246,9 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
     private View getSearchResulItemView(int position) {
         View rowView = LayoutInflater.from(this).inflate(R.layout.list_item, null, false);
         ((TextView) rowView.findViewById(R.id.name)).setText(getNameStr(position));
+        if(BuildConfig.DEBUG){
+            Log.e(TAG, "getSearchResultItemView:" + position + "; name:" + getNameStr(position));
+        }
         Drawable icon = null;
         if (checkIsApp(position)) {
             icon = getAppIcon(position);

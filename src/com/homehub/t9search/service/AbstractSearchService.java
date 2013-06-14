@@ -3,6 +3,8 @@ package com.homehub.t9search.service;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -227,11 +229,11 @@ public abstract class AbstractSearchService {
                 rebuildContacts(urgent);
             }
         });
-        mRebuildThreadPool.execute(new Runnable() {
-            public void run() {
-                rebuildCalllog(urgent);
-            }
-        });
+        /*        mRebuildThreadPool.execute(new Runnable() {
+                    public void run() {
+                        rebuildCalllog(urgent);
+                    }
+                });*/
 
         mRebuildThreadPool.execute(new Runnable() {
             public void run() {
@@ -308,7 +310,8 @@ public abstract class AbstractSearchService {
                 String pinyin = document.get(FIELD_PINYIN);
                 String pkg = document.get(FIELD_PKG);
                 String activity = document.get(FIELD_ACTIVITY);
-                log(TAG, "name:" + name + "; pkg:" + pkg + ";activity:" + activity);
+                log(TAG, "name:" + name + "; pkg:" + pkg + ";activity:" + activity + ";pinyin:" + pinyin
+                        + "; number:" + number);
 
                 if (null != name) {
                     resultItem.put(FIELD_NAME, document.get(FIELD_NAME));
@@ -345,9 +348,9 @@ public abstract class AbstractSearchService {
                 highlightedTimeUsed += (end - begin);
                 resultItem.put(FIELD_TYPE, document.get(FIELD_TYPE));
                 if (isContacts) {
-                    searchContactsResultList.put(pkg, resultItem);
+                    searchContactsResultList.put(name, resultItem);
                 } else {
-                    searchAppsResultList.put(pkg, resultItem);
+                    searchAppsResultList.put(name, resultItem);
                 }
             }
             indexReader.close();
@@ -355,14 +358,32 @@ public abstract class AbstractSearchService {
             log(TAG, q.toString() + "\t" + hits + "\t" + (end - start) + "\t" + highlightedTimeUsed);
 
             ArrayList<Map<String, String>> finalSearchResultList = new ArrayList<Map<String, String>>();
+            ArrayList<Map<String, String>> contactsSearchResult = new ArrayList<Map<String, String>>();
             finalSearchResultList.addAll(searchAppsResultList.values());
-            finalSearchResultList.addAll(searchContactsResultList.values());
+            Collections.sort(finalSearchResultList, APP_NAME_COMPARATOR);
+            contactsSearchResult.addAll(searchContactsResultList.values());
+            Collections.sort(contactsSearchResult, APP_NAME_COMPARATOR);
+            finalSearchResultList.addAll(contactsSearchResult);
             mSearchCallback.onSearchResult(mQuery, hits, finalSearchResultList);
         } catch (Exception e) {
             e.printStackTrace();
             log(TAG, e.toString());
         }
     }
+
+    public Comparator<Map<String, String>> APP_NAME_COMPARATOR = new Comparator<Map<String, String>>() {
+        @Override
+        public int compare(Map<String, String> first, Map<String, String> second) {
+            StringBuilder firstNameBuilder = new StringBuilder();
+            StringBuilder secondNameBuilder = new StringBuilder();
+
+            firstNameBuilder.append(first.get(SearchService.FIELD_NAME).toString()).append(' ')
+                    .append(first.get(SearchService.FIELD_PINYIN));
+            secondNameBuilder.append(second.get(SearchService.FIELD_NAME).toString()).append(' ')
+                    .append(second.get(SearchService.FIELD_PINYIN));
+            return (firstNameBuilder.toString()).compareTo(secondNameBuilder.toString());
+        }
+    };
 
     /**
      * @param pinyin 鎷奸煶琛ㄧず锛屾瘮濡俉angWeiWei,娉ㄦ剰姝ゅ棣栧瓧姣嶆槸澶у啓鐨� * @param query

@@ -11,10 +11,13 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.ContactsContract;
+import android.util.Log;
 
+import com.homehub.t9search.BuildConfig;
 import com.homehub.t9search.R;
 
 public class DBManager {
+    private static final String TAG = DBManager.class.getSimpleName();
     private static final String CONTACTS_URI = "content://com.android.contacts/"
             + "data/phones/filter/";
 
@@ -24,7 +27,7 @@ public class DBManager {
      *         photo.
      */
     public static Drawable getPeoplePhotoByPhoneNumber(Context context, String strPhoneNumber) {
-        Drawable peoplePhotoDrawable = null;
+        Drawable peoplePhotoDrawable = context.getResources().getDrawable(R.drawable.ic_dialer);
         Uri uriNumber2Contacts = Uri
                 .parse(CONTACTS_URI + strPhoneNumber);
         Cursor cursorCantacts = context
@@ -40,10 +43,14 @@ public class DBManager {
             InputStream input = ContactsContract.Contacts
                     .openContactPhotoInputStream(context
                             .getContentResolver(), uri);
-            Bitmap peoplePhotoBitmap = BitmapFactory.decodeStream(input);
-            peoplePhotoDrawable = new BitmapDrawable(context.getResources(), peoplePhotoBitmap);
-        } else {
-            peoplePhotoDrawable = context.getResources().getDrawable(R.drawable.ic_dialer);
+            if (input != null) {
+                Bitmap peoplePhotoBitmap = BitmapFactory.decodeStream(input);
+                peoplePhotoDrawable = new BitmapDrawable(context.getResources(), peoplePhotoBitmap);
+            } else {
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "This number :" + strPhoneNumber + " has no contacts photo.");
+                }
+            }
         }
         return peoplePhotoDrawable;
     }
