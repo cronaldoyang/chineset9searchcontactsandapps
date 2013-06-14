@@ -27,7 +27,7 @@ public class DBManager {
      *         photo.
      */
     public static Drawable getPeoplePhotoByPhoneNumber(Context context, String strPhoneNumber) {
-        Drawable peoplePhotoDrawable = context.getResources().getDrawable(R.drawable.ic_dialer);
+        Drawable peoplePhotoDrawable = context.getResources().getDrawable(R.drawable.ic_contact_picture);
         Uri uriNumber2Contacts = Uri
                 .parse(CONTACTS_URI + strPhoneNumber);
         Cursor cursorCantacts = context
