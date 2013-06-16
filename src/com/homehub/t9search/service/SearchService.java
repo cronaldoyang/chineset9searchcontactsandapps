@@ -1,6 +1,9 @@
 
 package com.homehub.t9search.service;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,17 +12,21 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.Term;
 
-import com.homehub.t9search.service.utils.PinyinConverter;
-
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.provider.CallLog.Calls;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.util.Log;
+
+import com.homehub.t9search.BuildConfig;
+import com.homehub.t9search.mode.AppInfo;
+import com.homehub.t9search.mode.SearchResultItem;
+import com.homehub.t9search.service.utils.PinyinConverter;
 
 public class SearchService extends AbstractSearchService {
     public static final String TAG = "SearchService";
@@ -30,11 +37,14 @@ public class SearchService extends AbstractSearchService {
 
     private static AbstractSearchService sInstance = null;
 
+    private static HashMap<String, SearchResultItem> mRecentlyInstalledAppsList;
+
     private Context mContext;
 
     private SearchService(Context context) {
         super(context.getDir(INDEX_DIR, Context.MODE_PRIVATE));
         mContext = context;
+        mRecentlyInstalledAppsList = new HashMap<String, SearchResultItem>();
         if (mIndexWriter.numDocs() < REBUILD_TRIGGER_THRESHOLD) {
             asyncRebuild(true);
         }
@@ -217,7 +227,6 @@ public class SearchService extends AbstractSearchService {
         Field labelField = createStringField(FIELD_NAME, "");
         Field pkgField = createStringField(FIELD_PKG, "");
         Field activityFiled = createStringField(FIELD_ACTIVITY, "");
-        ;
         Field pinyinField = createTextField(FIELD_PINYIN, "");
 
         document.add(pinyinField);
@@ -234,6 +243,7 @@ public class SearchService extends AbstractSearchService {
                 String pinyin = pinyinConverter.convert(label, true);
                 String pkg = info.activityInfo.applicationInfo.packageName;
                 String activity = info.activityInfo.name;
+                long installedDate = pm.getPackageInfo(pkg, 0).firstInstallTime;
 
                 labelField.setStringValue(label);
                 pkgField.setStringValue(pkg);
@@ -243,6 +253,8 @@ public class SearchService extends AbstractSearchService {
                         + pinyin + "; activity:" + activity);
 
                 mIndexWriter.addDocument(document);
+                mRecentlyInstalledAppsList.put(pinyin, new SearchResultItem(new AppInfo(label, pkg,
+                        label, activity, installedDate), null, false));
                 if (!urgent) {
                     yieldInterrupt();
                 }
@@ -254,6 +266,75 @@ public class SearchService extends AbstractSearchService {
             e.printStackTrace();
         }
 
+        // call the callback to tell them async build complete.
+        if (mAsyncBuildCompleteCallback != null && mAsyncBuildCompleteCallback.get() != null) {
+            mAsyncBuildCompleteCallback.get().onAsyncBuildComplete(getRecentlyInstalled6Apps());
+        }
         return hits;
     }
+
+    @Override
+    public List<SearchResultItem> getRecentlyInstalled6Apps() {
+        ArrayList<SearchResultItem> resultList = new ArrayList<SearchResultItem>();
+        ArrayList<SearchResultItem> result6Apps = new ArrayList<SearchResultItem>();
+
+        if (mRecentlyInstalledAppsList != null && mRecentlyInstalledAppsList.size() > 0) {
+            resultList.addAll(mRecentlyInstalledAppsList.values());
+            Collections.sort(resultList, APP_INSTALLEDDATE_COMPARATOR);
+            for (int i = 0; i < 6; i++) {
+                result6Apps.add(resultList.get(i));
+            }
+        }
+
+        return result6Apps;
+    }
+
+    public Comparator<SearchResultItem> APP_INSTALLEDDATE_COMPARATOR = new Comparator<SearchResultItem>() {
+        @Override
+        public int compare(SearchResultItem first, SearchResultItem second) {
+            if (first.appInfo.installedDate >= second.appInfo.installedDate) {
+                return -1;
+            } else {
+                return 1;
+            }
+        }
+    };
+
+    @Override
+    public void updatePackage(String pkg) {
+        SearchResultItem info = getSearchResultItemByPkg(pkg);
+        if (info != null) {
+            mRecentlyInstalledAppsList.put(pkg, info);
+        }
+    }
+
+    public SearchResultItem getSearchResultItemByPkg(String pkg) {
+        AppInfo info = null;
+        SearchResultItem searchResultItem = null;
+        try {
+            PackageManager pm = mContext.getPackageManager();
+            Intent intent = new Intent(Intent.ACTION_MAIN, null);
+            intent.addCategory(Intent.CATEGORY_LAUNCHER);
+            List<ResolveInfo> appList = pm.queryIntentActivities(intent, 0);
+            for (ResolveInfo resolveInfo : appList) {
+                String currentpkg = resolveInfo.activityInfo.applicationInfo.packageName;
+                if (currentpkg.equals(pkg)) {
+                    String label = resolveInfo.loadLabel(pm).toString();
+                    String activity = resolveInfo.activityInfo.name;
+                    long installedDate = pm.getPackageInfo(pkg, 0).firstInstallTime;
+                    info = new AppInfo(label, pkg, label, activity, installedDate);
+                    searchResultItem = new SearchResultItem(info, null, false);
+                }
+            }
+        } catch (NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return searchResultItem;
+    }
+
+    @Override
+    public void removePakcage(String pkg) {
+        mRecentlyInstalledAppsList.remove(pkg);
+    }
+
 }

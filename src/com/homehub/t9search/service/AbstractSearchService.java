@@ -1,11 +1,14 @@
+
 package com.homehub.t9search.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -37,6 +40,13 @@ import org.apache.lucene.store.MMapDirectory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 
+import android.util.Log;
+
+import com.homehub.t9search.BuildConfig;
+import com.homehub.t9search.mode.AppInfo;
+import com.homehub.t9search.mode.SearchResultItem;
+import com.homehub.t9search.pubapi.IAsyncBuildComplete;
+import com.homehub.t9search.pubapi.ISearchComplet;
 import com.homehub.t9search.service.analysis.NGramAnalyzer;
 import com.homehub.t9search.service.analysis.PinyinAnalyzer;
 import com.homehub.t9search.service.analysis.T9Analyzer;
@@ -109,6 +119,12 @@ public abstract class AbstractSearchService {
 
     protected String mPostTag = POST_TAG;
 
+    WeakReference<IAsyncBuildComplete> mAsyncBuildCompleteCallback;
+
+    public void setAsyncBuildCompleteCallback(IAsyncBuildComplete callback) {
+        mAsyncBuildCompleteCallback = new WeakReference<IAsyncBuildComplete>(callback);
+    }
+
     protected AbstractSearchService() {
         init(new RAMDirectory());
     }
@@ -180,6 +196,12 @@ public abstract class AbstractSearchService {
 
     protected abstract long rebuildAllApps(boolean urgent);
 
+    public abstract List<SearchResultItem> getRecentlyInstalled6Apps();
+
+    public abstract void updatePackage(String pkg);
+
+    public abstract void removePakcage(String pkg);
+
     public String getPreTag() {
         return mPreTag;
     }
@@ -196,7 +218,7 @@ public abstract class AbstractSearchService {
         this.mPostTag = mPostTag;
     }
 
-    public void query(String query, int maxHits, boolean highlight, SearchCallback searchCallback) {
+    public void query(String query, int maxHits, boolean highlight, ISearchComplet searchCallback) {
         mSearchThreadPool.execute(new SearchRunnable(query, maxHits, highlight, searchCallback));
     }
 
@@ -229,11 +251,10 @@ public abstract class AbstractSearchService {
                 rebuildContacts(urgent);
             }
         });
-        /*        mRebuildThreadPool.execute(new Runnable() {
-                    public void run() {
-                        rebuildCalllog(urgent);
-                    }
-                });*/
+        /*
+         * mRebuildThreadPool.execute(new Runnable() { public void run() {
+         * rebuildCalllog(urgent); } });
+         */
 
         mRebuildThreadPool.execute(new Runnable() {
             public void run() {
@@ -250,10 +271,10 @@ public abstract class AbstractSearchService {
 
         private boolean mHighlight;
 
-        private SearchCallback mSearchCallback;
+        private ISearchComplet mSearchCallback;
 
         public SearchRunnable(String query, int maxHits, boolean highlight,
-                SearchCallback searchCallback) {
+                ISearchComplet searchCallback) {
             mQuery = query;
             mMaxHits = maxHits;
             mHighlight = highlight;
@@ -267,7 +288,7 @@ public abstract class AbstractSearchService {
     }
 
     protected void doQuery(String mQuery, int mMaxHits, boolean mHighlight,
-            SearchCallback mSearchCallback) {
+            ISearchComplet mSearchCallback) {
         long start = System.currentTimeMillis();
         Map<String, Float> boosts = new HashMap<String, Float>();
         if (!StringUtils.isBlank(mQuery)) {
@@ -288,7 +309,6 @@ public abstract class AbstractSearchService {
                 boosts.keySet().toArray(new String[0]), mSearchAnalyzer, boosts);
         multiFieldQueryParser.setAllowLeadingWildcard(false);
         multiFieldQueryParser.setDefaultOperator(QueryParser.Operator.AND);
-        long highlightedTimeUsed = 0;
         try {
             Query q = boosts.isEmpty() ? new MatchAllDocsQuery() : multiFieldQueryParser
                     .parse(mQuery);
@@ -297,68 +317,72 @@ public abstract class AbstractSearchService {
             TopDocs td = indexSearcher.search(q, mMaxHits);
             long hits = td.totalHits;
             ScoreDoc[] scoreDocs = td.scoreDocs;
-            HashMap<String, Map<String, String>> searchAppsResultList = new HashMap<String, Map<String, String>>(
+            HashMap<String, SearchResultItem> searchAppsResultList = new HashMap<String, SearchResultItem>(
                     mMaxHits);
-            HashMap<String, Map<String, String>> searchContactsResultList = new HashMap<String, Map<String, String>>(
+            HashMap<String, SearchResultItem> searchContactsResultList = new HashMap<String, SearchResultItem>(
                     mMaxHits);
             for (ScoreDoc scoreDoc : scoreDocs) {
-                Map<String, String> resultItem = new HashMap<String, String>();
+                AppInfo info = new AppInfo();
+                SearchResultItem resultItem = new SearchResultItem();
                 Document document = indexReader.document(scoreDoc.doc);
-                boolean isContacts = false;
                 String name = document.get(FIELD_NAME);
                 String number = document.get(FIELD_NUMBER);
                 String pinyin = document.get(FIELD_PINYIN);
                 String pkg = document.get(FIELD_PKG);
                 String activity = document.get(FIELD_ACTIVITY);
-                log(TAG, "name:" + name + "; pkg:" + pkg + ";activity:" + activity + ";pinyin:" + pinyin
-                        + "; number:" + number);
+                log(TAG, "name:" + name + "; pkg:" + pkg + ";activity:" + activity + ";pinyin:"
+                        + pinyin + "; number:" + number);
 
                 if (null != name) {
-                    resultItem.put(FIELD_NAME, document.get(FIELD_NAME));
+                    info.name = document.get(FIELD_NAME);
                 }
                 if (null != number) {
-                    resultItem.put(FIELD_NUMBER, number);
-                    isContacts = true;
+                    resultItem.isContacts = true;
+                    resultItem.number = number;
                 }
                 if (null != pkg && null != activity) {
-                    resultItem.put(FIELD_PKG, pkg);
-                    resultItem.put(FIELD_ACTIVITY, activity);
+                    info.pkg = document.get(FIELD_PKG);
+                    info.activity = document.get(FIELD_ACTIVITY);
                 }
 
-                long begin = System.currentTimeMillis();
                 if (mHighlight) {
-                    /* String highlightedNumber = (number != null) ? highlightNumber(number, mQuery)
-                             : null;*/
+                    /*
+                     * String highlightedNumber = (number != null) ?
+                     * highlightNumber(number, mQuery) : null;
+                     */
                     String highlightedPinyin = (null != pinyin) ? highlightPinyin(pinyin, mQuery)
                             : null;
 
-                    /*if (null != highlightedNumber) {
-                        doc.put(FIELD_HIGHLIGHTED_NUMBER, highlightedNumber);
-                    } else*/if (null != highlightedPinyin) {
+                    /*
+                     * if (null != highlightedNumber) {
+                     * doc.put(FIELD_HIGHLIGHTED_NUMBER, highlightedNumber); }
+                     * else
+                     */if (null != highlightedPinyin) {
                         if (pinyin.equals(name)) {
-                            resultItem.put(FIELD_NAME, highlightedPinyin);
+                            info.name = highlightedPinyin;
                         } else {
-                            resultItem.put(FIELD_PINYIN, highlightedPinyin);
+                            info.pingyin = highlightedPinyin;
                         }
                     } else {
                         continue;
                     }
                 }
-                long end = System.currentTimeMillis();
-                highlightedTimeUsed += (end - begin);
-                resultItem.put(FIELD_TYPE, document.get(FIELD_TYPE));
-                if (isContacts) {
+
+                resultItem.appInfo = info;
+                if (resultItem.isContacts) {
                     searchContactsResultList.put(name, resultItem);
                 } else {
                     searchAppsResultList.put(name, resultItem);
                 }
             }
             indexReader.close();
-            long end = System.currentTimeMillis();
-            log(TAG, q.toString() + "\t" + hits + "\t" + (end - start) + "\t" + highlightedTimeUsed);
 
-            ArrayList<Map<String, String>> finalSearchResultList = new ArrayList<Map<String, String>>();
-            ArrayList<Map<String, String>> contactsSearchResult = new ArrayList<Map<String, String>>();
+            if (BuildConfig.DEBUG) {
+                Log.e(TAG, "doQuery: appsize:" + searchAppsResultList.size() + "; contactsSize:"
+                        + searchContactsResultList.size());
+            }
+            ArrayList<SearchResultItem> finalSearchResultList = new ArrayList<SearchResultItem>();
+            ArrayList<SearchResultItem> contactsSearchResult = new ArrayList<SearchResultItem>();
             finalSearchResultList.addAll(searchAppsResultList.values());
             Collections.sort(finalSearchResultList, APP_NAME_COMPARATOR);
             contactsSearchResult.addAll(searchContactsResultList.values());
@@ -371,17 +395,10 @@ public abstract class AbstractSearchService {
         }
     }
 
-    public Comparator<Map<String, String>> APP_NAME_COMPARATOR = new Comparator<Map<String, String>>() {
+    public Comparator<SearchResultItem> APP_NAME_COMPARATOR = new Comparator<SearchResultItem>() {
         @Override
-        public int compare(Map<String, String> first, Map<String, String> second) {
-            StringBuilder firstNameBuilder = new StringBuilder();
-            StringBuilder secondNameBuilder = new StringBuilder();
-
-            firstNameBuilder.append(first.get(SearchService.FIELD_NAME).toString()).append(' ')
-                    .append(first.get(SearchService.FIELD_PINYIN));
-            secondNameBuilder.append(second.get(SearchService.FIELD_NAME).toString()).append(' ')
-                    .append(second.get(SearchService.FIELD_PINYIN));
-            return (firstNameBuilder.toString()).compareTo(secondNameBuilder.toString());
+        public int compare(SearchResultItem first, SearchResultItem second) {
+            return (first.appInfo.name).compareTo(second.appInfo.name);
         }
     };
 

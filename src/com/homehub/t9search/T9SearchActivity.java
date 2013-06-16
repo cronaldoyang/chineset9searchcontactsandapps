@@ -4,7 +4,6 @@ package com.homehub.t9search;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -21,19 +20,19 @@ import android.text.Spanned;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.homehub.t9search.adapter.T9SearchResultAdapter;
 import com.homehub.t9search.dao.DBManager;
+import com.homehub.t9search.mode.SearchResultItem;
+import com.homehub.t9search.pubapi.IAsyncBuildComplete;
+import com.homehub.t9search.pubapi.ISearchComplet;
 import com.homehub.t9search.service.AbstractSearchService;
-import com.homehub.t9search.service.SearchCallback;
 import com.homehub.t9search.service.SearchService;
 
-public class T9SearchActivity extends Activity implements AdapterView.OnItemClickListener {
+public class T9SearchActivity extends Activity implements IAsyncBuildComplete {
     private static final String TAG = T9SearchActivity.class.getSimpleName();
 
     private static final int MAX_HITS = 20;
@@ -48,9 +47,7 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
 
     private LinearLayout mSearchResultContainer;
 
-    private List<Map<String, String>> mResults = new ArrayList<Map<String, String>>();
-
-    private T9SearchResultAdapter mResultAdapter = null;
+    private List<SearchResultItem> mResults = new ArrayList<SearchResultItem>();
 
     private Handler mHandler = null;
 
@@ -66,8 +63,8 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
     private void initVariables() {
         mHandler = new Handler(Looper.getMainLooper());
         mSearchService = SearchService.getInstance(this);
+        mSearchService.setAsyncBuildCompleteCallback(this);
         mInputStrBuilder = new StringBuilder();
-        mResultAdapter = new T9SearchResultAdapter(this);
     }
 
     private void initView() {
@@ -183,18 +180,12 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
         mSearchResultContainer.removeAllViews();
     }
 
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        mResultAdapter.handleClick(position);
-    }
-
     private void search(String query) {
-        SearchCallback searchCallback = new SearchCallback() {
+        ISearchComplet searchCallback = new ISearchComplet() {
             private long start = System.currentTimeMillis();
 
             @Override
-            public void onSearchResult(String query, long hits,
-                    final List<Map<String, String>> result) {
+            public void onSearchResult(String query, long hits, final List<SearchResultItem> result) {
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -224,7 +215,11 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
         }
     }
 
-    private void bindSearachResultData(List<Map<String, String>> result) {
+    private void bindRecentlyInstalledApps(List<SearchResultItem> recentlyInstalledAppsList) {
+        bindSearachResultData(recentlyInstalledAppsList);
+    }
+
+    private void bindSearachResultData(List<SearchResultItem> result) {
         mResults.clear();
         mResults.addAll(result);
         mSearchResultContainer.removeAllViews();
@@ -245,10 +240,10 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
 
     private View getSearchResulItemView(int position) {
         View rowView = LayoutInflater.from(this).inflate(R.layout.list_item, null, false);
-        ((TextView) rowView.findViewById(R.id.name)).setText(getNameStr(position));
-        if(BuildConfig.DEBUG){
+        if (BuildConfig.DEBUG) {
             Log.e(TAG, "getSearchResultItemView:" + position + "; name:" + getNameStr(position));
         }
+        ((TextView) rowView.findViewById(R.id.name)).setText(getNameStr(position));
         Drawable icon = null;
         if (checkIsApp(position)) {
             icon = getAppIcon(position);
@@ -260,59 +255,38 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
     }
 
     protected Spanned getNameStr(int position) {
-        Map<String, String> searchRes = mResults.get(position);
+        SearchResultItem searchRes = mResults.get(position);
         StringBuilder nameBuilder = new StringBuilder();
-        if (searchRes.containsKey(SearchService.FIELD_NAME)) {
-            nameBuilder.append(searchRes.get(SearchService.FIELD_NAME).toString());
-        } else {
-            nameBuilder.append("Not contains*****");
+
+        String name = searchRes.appInfo.name;
+        String pingyin = searchRes.appInfo.pingyin;
+        if (name != null && !name.equals("")) {
+            nameBuilder.append(searchRes.appInfo.name);
         }
-        nameBuilder.append(' ');
-        if (searchRes.containsKey(SearchService.FIELD_PINYIN)) {
-            nameBuilder.append(searchRes.get(SearchService.FIELD_PINYIN).toString());
+
+        if (pingyin != null && !pingyin.equals("")) {
+            nameBuilder.append(searchRes.appInfo.pingyin);
         }
         return Html.fromHtml(nameBuilder.toString());
     }
 
-    protected Spanned getHighlightPhoneNumberStr(int position) {
-        Map<String, String> searchRes = mResults.get(position);
-        StringBuilder numberBuilder = new StringBuilder();
-        if (searchRes.containsKey(SearchService.FIELD_HIGHLIGHTED_NUMBER)) {
-            numberBuilder.append(searchRes.get(SearchService.FIELD_HIGHLIGHTED_NUMBER).toString());
-        } else if (searchRes.containsKey(SearchService.FIELD_NUMBER)) {
-            numberBuilder.append(searchRes.get(SearchService.FIELD_NUMBER));
-        }
-        return Html.fromHtml(numberBuilder.toString());
-    }
-
     protected String getPhoneNumberStr(int position) {
-        Map<String, String> searchRes = mResults.get(position);
-        if (searchRes.containsKey(SearchService.FIELD_NUMBER)) {
-            return (String) searchRes.get(SearchService.FIELD_NUMBER);
-        } else {
-            return "";
-        }
+        SearchResultItem searchRes = mResults.get(position);
+        return searchRes != null ? searchRes.number : "";
     }
 
     protected boolean checkIsApp(int position) {
-        Map<String, String> searchRes = mResults.get(position);
-        boolean ret = false;
-        if (searchRes.containsKey(SearchService.FIELD_PKG)
-                && searchRes.containsKey(SearchService.FIELD_ACTIVITY)) {
-            ret = true;
-        }
-        if (BuildConfig.DEBUG) {
-            Log.e(TAG, "checkIsApp:" + ret);
-        }
+        SearchResultItem searchRes = mResults.get(position);
+        boolean ret = searchRes.isContacts ? false : true;
         return ret;
     }
 
     protected Drawable getAppIcon(int position) {
-        Map<String, String> searchRes = mResults.get(position);
+        SearchResultItem searchRes = mResults.get(position);
         Drawable icon = null;
         try {
             PackageManager pm = this.getPackageManager();
-            String pkg = searchRes.get(SearchService.FIELD_PKG).toString();
+            String pkg = searchRes.appInfo.pkg;
             if (BuildConfig.DEBUG) {
                 Log.e(TAG, "getAppIcon: pkg:" + pkg);
             }
@@ -324,9 +298,9 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
     }
 
     protected void naviToApp(int position) {
-        Map<String, String> searchRes = mResults.get(position);
-        String pkg = searchRes.get(SearchService.FIELD_PKG).toString();
-        String activity = searchRes.get(SearchService.FIELD_ACTIVITY).toString();
+        SearchResultItem searchRes = mResults.get(position);
+        String pkg = searchRes.appInfo.pkg;
+        String activity = searchRes.appInfo.activity;
         if (BuildConfig.DEBUG) {
             Log.e(TAG, "naviToApp: pkg:" + pkg + "; activity:" + activity);
         }
@@ -339,8 +313,8 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
     }
 
     protected void naviTocall(int position) {
-        Map<String, String> searchRes = mResults.get(position);
-        String number = searchRes.get(SearchService.FIELD_NUMBER).toString();
+        SearchResultItem searchRes = mResults.get(position);
+        String number = searchRes.number;
         Intent intent = new Intent(Intent.ACTION_CALL);
         intent.setData(Uri.fromParts("tel", number, null));
         this.startActivity(intent);
@@ -352,6 +326,23 @@ public class T9SearchActivity extends Activity implements AdapterView.OnItemClic
         } else {
             naviTocall(position);
         }
+    }
+
+    @Override
+    public void onAsyncBuildComplete(final List<SearchResultItem> result) {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "onAsyncBuildComplete: result:" + result.size());
+            Log.d(TAG, "onAsyncBuildComplete: itemname:" + result.get(0));
+        }
+        mResults.clear();
+        mResults.addAll(result);
+        mHandler.post(new Runnable() {
+
+            @Override
+            public void run() {
+                bindRecentlyInstalledApps(result);
+            }
+        });
     }
 
 }
